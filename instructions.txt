@@ -1,0 +1,207 @@
+================================================================================
+  POWERLENS — Instructions de travail
+  KaynorData · Analyse descriptive · Domaine Énergie
+  Auteur : Beh Konaté | konatebeh21@gmail.com
+  GitHub : git@github-kaynordata:Kaynor-Data/PowerLens.git
+================================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. STRUCTURE DU PROJET
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  PowerLens/
+  ├── data/
+  │   ├── .gitkeep                         (fichier vide — garde le dossier dans Git)
+  │   ├── household_power_consumption.txt  (dataset UCI — NE PAS committer)
+  │   └── processed/
+  │       └── powerlens_clean.parquet      (généré par 01_data_loading.ipynb)
+  ├── notebooks/
+  │   ├── 01_data_loading.ipynb
+  │   ├── 02_eda_univariate.ipynb
+  │   ├── 03_eda_bivariate.ipynb
+  │   └── 04_visualisations.ipynb
+  ├── reports/
+  │   ├── figures/                         (graphiques PNG exportés)
+  │   └── powerlens_monthly_report.csv     (généré par 04_visualisations.ipynb)
+  ├── venv/                                (environnement virtuel — NE PAS committer)
+  ├── .gitignore
+  ├── instructions.txt
+  ├── LICENSE
+  ├── README.md
+  └── requirements.txt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  2. DATASET
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Nom     : Individual Household Electric Power Consumption
+  Source  : UCI Machine Learning Repository
+  Lien    : https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption
+  Format  : .txt (séparateur = ";", valeurs manquantes = "?")
+  Taille  : ~124 MB (décompressé)
+  Licence : Creative Commons Attribution 4.0 (CC BY 4.0)
+
+  Après téléchargement, placer le fichier ici :
+  --> data/household_power_consumption.txt
+
+  IMPORTANT : Ce fichier est exclu du repo Git via .gitignore (trop volumineux).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  3. SETUP — PREMIÈRE INSTALLATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Étape 1 — Cloner le repo
+  ------------------------
+    git clone git@github-kaynordata:Kaynor-Data/PowerLens.git
+    cd PowerLens
+
+  Étape 2 — Créer l'environnement virtuel
+  ----------------------------------------
+    python -m venv venv
+
+  Étape 3 — Activer le venv
+  --------------------------
+    Windows  :  venv\Scripts\activate
+    Mac/Linux:  source venv/bin/activate
+
+    --> Tu dois voir (venv) au début de la ligne de commande.
+
+  Étape 4 — Installer les dépendances
+  -------------------------------------
+    pip install -r requirements.txt
+
+  Étape 5 — Télécharger le dataset
+  ----------------------------------
+    Lien : https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption
+    Placer le fichier dans : data/household_power_consumption.txt
+
+  Étape 6 — Lancer Jupyter
+  -------------------------
+    jupyter notebook
+
+    --> Le navigateur s'ouvre sur http://localhost:8888
+    --> Naviguer dans notebooks/
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  4. WORKFLOW D'EXÉCUTION DES NOTEBOOKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Exécuter dans cet ordre strict :
+
+  [1] 01_data_loading.ipynb
+      - Charge le dataset brut
+      - Parse les colonnes Date + Time en index datetime
+      - Traite les valeurs manquantes (interpolation linéaire)
+      - Ajoute les features temporelles (hour, day_of_week, month, etc.)
+      - Calcule energy_kwh = Global_active_power / 60
+      - Sauvegarde : data/processed/powerlens_clean.parquet
+      PRÉREQUIS : data/household_power_consumption.txt doit exister
+
+  [2] 02_eda_univariate.ipynb
+      - Statistiques descriptives (moyenne, médiane, écart-type, skewness)
+      - Histogrammes + KDE pour chaque variable
+      - Boxplots comparatifs
+      - Tendance journalière (kWh/jour)
+      - Distribution par année
+      PRÉREQUIS : data/processed/powerlens_clean.parquet (généré par 01)
+
+  [3] 03_eda_bivariate.ipynb
+      - Matrice de corrélation (heatmap)
+      - Consommation moyenne par heure
+      - Consommation par jour de semaine
+      - Saisonnalité mensuelle
+      - Heatmap heure x jour de semaine
+      - Profil semaine vs week-end
+      - Scatter plots (Active Power vs Intensity, vs Reactive Power)
+      PRÉREQUIS : data/processed/powerlens_clean.parquet (généré par 01)
+
+  [4] 04_visualisations.ipynb
+      - Calcul des KPIs globaux
+      - Dashboard final (figure complète 20x14)
+      - Export PNG haute résolution : reports/figures/04_powerlens_dashboard.png
+      - Export CSV mensuel : reports/powerlens_monthly_report.csv
+      PRÉREQUIS : data/processed/powerlens_clean.parquet (généré par 01)
+
+  Raccourci clavier Jupyter : Shift + Entrée = exécuter une cellule
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  5. WORKFLOW GIT — SAUVEGARDER ET POUSSER SUR GITHUB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Vérifier l'état du repo
+  ------------------------
+    git status
+
+  Ajouter les fichiers modifiés
+  ------------------------------
+    git add .
+    -- ou fichier par fichier --
+    git add notebooks/01_data_loading.ipynb
+
+  Committer avec un message clair
+  --------------------------------
+    git commit -m "feat: add data loading notebook with datetime parsing"
+
+  Pousser sur GitHub
+  -------------------
+    git push origin main
+
+  Convention des messages de commit :
+    feat:     nouvelle fonctionnalité ou nouveau notebook
+    fix:      correction d'une erreur
+    chore:    tâche technique (config, gitignore, requirements)
+    docs:     modification du README ou instructions
+    refactor: amélioration du code sans changer le résultat
+    viz:      ajout ou modification de visualisations
+
+  Exemples :
+    git commit -m "feat: complete EDA univariate analysis"
+    git commit -m "viz: add heatmap hour x day of week"
+    git commit -m "docs: update README with key findings"
+    git commit -m "fix: handle missing values in sub_metering columns"
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  6. COMMANDES UTILES AU QUOTIDIEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Activer le venv (à faire à chaque session)
+    venv\Scripts\activate
+
+  Désactiver le venv
+    deactivate
+
+  Lancer Jupyter
+    jupyter notebook
+
+  Mettre à jour les dépendances après ajout dans requirements.txt
+    pip install -r requirements.txt
+
+  Voir les packages installés
+    pip list
+
+  Vérifier la connexion SSH GitHub (compte data)
+    ssh -T git@github-kaynordata
+
+  Voir le remote configuré
+    git remote -v
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  7. ROADMAP — SÉRIE ÉNERGIE KAYNORDATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [1] PowerLens  — Analyse descriptive    (que s'est-il passé ?)       ✅ En cours
+  [2] WattScope  — Analyse diagnostique   (pourquoi ?)                 ⏳ Planifié
+  [3] GridPulse  — Analyse prédictive     (que va-t-il se passer ?)    ⏳ Planifié
+  [4] EnergyFlow — Analyse prescriptive   (comment optimiser ?)        ⏳ Planifié
+
+
+================================================================================
+  KaynorData © 2026 | github.com/Kaynor-Data | @KaynorData
+================================================================================    
