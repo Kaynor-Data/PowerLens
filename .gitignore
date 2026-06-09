@@ -23,6 +23,7 @@ data/*.txt*
 data/*.csv*
 data/*.zip*
 data/*.gz*
+**/*.parquet
 data/*.parquet
 
 # Jupyter Notebook & IPython
